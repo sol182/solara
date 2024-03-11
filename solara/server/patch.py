@@ -280,7 +280,7 @@ def WidgetContextAwareThread__init__(self, *args, **kwargs):
         try:
             self.current_context = kernel_context.get_current_context()
         except RuntimeError:
-            logger.debug(f"No context for thread {self}")
+            logger.debug(f"No context for thread {self._name}")
 
 
 def WidgetContextAwareThread__bootstrap(self):
@@ -363,6 +363,7 @@ def patch_ipyreact():
 
     # make this a no-op, we'll create the widget when needed
     ipyreact.importmap._update_import_map = lambda: None
+
 
 def patch_ipyvue_performance():
     import functools
