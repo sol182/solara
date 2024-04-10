@@ -1233,3 +1233,59 @@ def test_pydantic_basic():
     assert person.get().height == 2.0
     assert Ref(person.fields.name).get() == "Maria"
     assert Ref(person.fields.height).get() == 2.0
+@dataclasses.dataclass(frozen=True)
+class Profile:
+    name: str
+    surname: str
+
+
+def test_computed_glitch_invalid_state_without_error():
+    from solara.toestand import Computed
+
+    profile = Reactive(Profile(name="John", surname="Doe"))
+
+    name = Computed(lambda: profile.value.name)
+    surname = Computed(lambda: profile.value.surname)
+
+    computed_initials = []
+
+    def compute_initials():
+        initials = name.value[0] + surname.value[0]
+        computed_initials.append(initials)
+        return initials
+
+    initials = Computed(compute_initials)
+
+    assert name.value == "John"
+    assert surname.value == "Doe"
+    assert initials.value == "JD"
+    assert computed_initials == ["JD"]
+
+    profile.value = Profile(name="Rosa", surname="Breddels")
+
+    assert name.value == "Rosa"
+    assert surname.value == "Breddels"
+    assert initials.value == "RB"
+    assert computed_initials == ["JD", "RB"]
+
+
+@dataclasses.dataclass(frozen=True)
+class CountrySelection:
+    countries: List[str]
+    selected: str
+
+
+def test_computed_glitch_invalid_state_with_error():
+    from solara.toestand import Computed
+
+    country_selection = Reactive(CountrySelection(countries=["Netherlands", "Belgium", "Germany"], selected="Germany"))
+
+    countries = Computed(lambda: country_selection.value.countries)
+    selected = Computed(lambda: country_selection.value.selected)
+    selected_index = Computed(lambda: countries.value.index(selected.value))
+
+    assert selected_index.value == 2
+
+    country_selection.value = CountrySelection(countries=["China", "Japan"], selected="Japan")
+
+    assert selected_index.value == 1
