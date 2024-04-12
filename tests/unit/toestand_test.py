@@ -816,7 +816,8 @@ def test_reactive_auto_subscribe(kernel_context):
     assert rc.find(v.Slider).widget.v_model == 2
     y.value = "hello"
     assert rc.find(v.Slider).widget.label == "hello"
-    assert len(x._storage.listeners2) == 1
+    assert len(x._storage.listeners2[kernel_context.id]) == 1
+    assert len(x._storage.listeners_changed[kernel_context.id]) == 0
     # force an extra listener
     x.value = 0
     # and remove it
@@ -837,6 +838,7 @@ def test_reactive_auto_subscribe(kernel_context):
     rc.close()
     assert not x._storage.listeners[kernel_context.id]
     assert not x._storage.listeners2[kernel_context.id]
+    assert not x._storage.listeners_changed[kernel_context.id]
 
 
 def test_reactive_auto_subscribe_sub():
@@ -861,7 +863,7 @@ def test_reactive_auto_subscribe_sub():
     ref.value += 1
     assert rc.find(v.Alert).widget.children[0] == "2 bears around here"
     assert reactive_used == {ref}
-    # now check that we didn't listen to the while object, just count changes
+    # now check that we didn't listen to the whole object, just count changes
     renders_before = renders
     Ref(bears.fields.type).value = "pink"
     assert renders == renders_before
@@ -1233,6 +1235,8 @@ def test_pydantic_basic():
     assert person.get().height == 2.0
     assert Ref(person.fields.name).get() == "Maria"
     assert Ref(person.fields.height).get() == 2.0
+
+
 @dataclasses.dataclass(frozen=True)
 class Profile:
     name: str
