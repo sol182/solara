@@ -26,6 +26,8 @@ Put the following Python snippet in a file (we suggest `sol.py`), or put it in a
 
 ```solara
 import solara
+;spin 100
+;fly
 
 # Declare reactive variables at the top level. Components using these variables
 # will be re-executed when their values change.
